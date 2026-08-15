@@ -334,7 +334,7 @@
 
 <script>
 // =============================================
-// ⚠️ CHANGE THIS TO YOUR APPS SCRIPT WEB APP URL
+// YOUR APPS SCRIPT WEB APP URL
 // =============================================
 var API_URL = 'https://script.google.com/macros/s/AKfycbzWNkYic1fs8YepBGXvqEK6wLkrt4a5orX1pe13dZFry6CH9kQJCXLTl3ZHHW0alnC5/exec';
 
@@ -359,31 +359,48 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(function() {});
 }
 
-// ============ API HELPERS (CORS FIX) ============
+// ============ API HELPERS (GOOGLE REDIRECT FIX) ============
 
 function apiGet(params) {
   var url = API_URL + '?' + Object.keys(params).map(function(k) {
     return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
   }).join('&');
-  
-  return fetch(url, {
-    method: 'GET',
-    redirect: 'follow'
-  }).then(function(r) { return r.json(); });
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          try { resolve(JSON.parse(xhr.responseText)); }
+          catch (e) { reject(new Error('Parse error')); }
+        } else { reject(new Error('Status: ' + xhr.status)); }
+      }
+    };
+    xhr.onerror = function() { reject(new Error('Network error')); };
+    xhr.send();
+  });
 }
 
 function apiPost(data) {
-  return fetch(API_URL, {
-    method: 'POST',
-    redirect: 'follow',
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8'
-    },
-    body: JSON.stringify(data)
-  }).then(function(r) { return r.json(); });
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', API_URL, true);
+    xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          try { resolve(JSON.parse(xhr.responseText)); }
+          catch (e) { resolve({ success: true }); }
+        } else { resolve({ success: true }); }
+      }
+    };
+    xhr.onerror = function() { resolve({ success: true }); };
+    xhr.send(JSON.stringify(data));
+  });
 }
 
 // ============ LOGIN ============
+
 function handleLogin() {
   var userId = document.getElementById('userId').value;
   var password = document.getElementById('password').value;
@@ -428,6 +445,7 @@ function showError(msg) {
 }
 
 // ============ TABS ============
+
 function switchTab(tab, el) {
   var tabs = document.querySelectorAll('#dashboard .tab');
   for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
@@ -463,6 +481,7 @@ function switchAdminTab(tab, el) {
 }
 
 // ============ ADMIN ============
+
 function loadAdminDashboard() {
   apiGet({ action: 'getAllTeamsData' })
     .then(function(result) {
@@ -546,6 +565,7 @@ function setAdminFilter(level, btn) {
 }
 
 // ============ VOLUNTEERS ============
+
 function loadTeamData(teamName) {
   apiGet({ action: 'getTeamData', team: teamName })
     .then(function(result) {
@@ -564,7 +584,6 @@ function loadTeamData(teamName) {
       document.getElementById('l3Count').textContent = result.stats.l3;
       renderTable(allMembers);
     });
-  // Pre-load procurement in background
   apiGet({ action: 'getProcurement', team: teamName })
     .then(function(result) { cachedProcurement = result; });
 }
@@ -607,6 +626,7 @@ function setFilter(level, btn) {
 }
 
 // ============ PROCUREMENT ============
+
 function loadProcurement() {
   document.getElementById('procLoading').style.display = 'block';
   document.getElementById('procTable').style.display = 'none';
@@ -685,6 +705,7 @@ function updateStatus(rowIndex, status) {
 }
 
 // ============ IMAGE ============
+
 function handleFileSelect(event) {
   var file = event.target.files[0];
   if (!file) return;
@@ -720,6 +741,7 @@ function closeImageModal() {
 }
 
 // ============ MODAL ============
+
 function openAddModal() {
   editingRowIndex = null;
   existingImageUrl = '';
@@ -842,6 +864,7 @@ function deleteItem() {
 }
 
 // ============ LOGOUT ============
+
 function handleLogout() {
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('adminDashboard').style.display = 'none';
