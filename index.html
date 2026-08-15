@@ -1,0 +1,857 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safety and Security Team - Didar Hyderabad 2026</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a73e8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Didar 2026">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+    .login-box h1 { text-align: center; color: #1a73e8; margin-bottom: 4px; font-size: 22px; }
+    .login-box .subtitle { text-align: center; color: #333; margin-bottom: 4px; font-size: 14px; font-weight: 600; }
+    .login-box p { text-align: center; color: #666; margin-bottom: 30px; font-size: 13px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; }
+    .form-group select, .form-group input { width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; background: white; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: #1a73e8; }
+    .login-btn { width: 100%; padding: 14px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    .login-btn:hover { background: #1557b0; }
+    .login-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .error { color: #d93025; text-align: center; margin-top: 12px; display: none; }
+    .dashboard { display: none; }
+    .admin-dashboard { display: none; }
+    .header { background: #1a73e8; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .header h2 { font-size: 18px; }
+    .logout-btn { padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .logout-btn:hover { background: rgba(255,255,255,0.3); }
+    .tabs { display: flex; background: white; border-bottom: 2px solid #e0e0e0; padding: 0 24px; }
+    .tab { padding: 14px 20px; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; transition: all 0.2s; }
+    .tab:hover { color: #1a73e8; }
+    .tab.active { color: #1a73e8; border-bottom-color: #1a73e8; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; padding: 20px 24px; }
+    .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; }
+    .stat-card .number { font-size: 32px; font-weight: 700; color: #1a73e8; }
+    .stat-card .label { color: #666; margin-top: 4px; font-size: 14px; }
+    .stat-card.l1 .number { color: #34a853; }
+    .stat-card.l2 .number { color: #fbbc04; }
+    .stat-card.l3 .number { color: #ea4335; }
+    .controls { padding: 0 24px 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .search-input { flex: 1; min-width: 200px; padding: 10px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+    .search-input:focus { outline: none; border-color: #1a73e8; }
+    .filter-btn { padding: 10px 16px; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; }
+    .filter-btn:hover { border-color: #1a73e8; }
+    .filter-btn.active { background: #1a73e8; color: white; border-color: #1a73e8; }
+    .table-container { padding: 0 24px 24px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    th { background: #f8f9fa; padding: 14px 16px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid #e0e0e0; white-space: nowrap; }
+    td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #444; }
+    tr:hover td { background: #f8f9ff; }
+    .level-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+    .level-L1, .level-1 { background: #e6f4ea; color: #137333; }
+    .level-L2, .level-2 { background: #fef7e0; color: #7c5e00; }
+    .level-L3, .level-3 { background: #fce8e6; color: #c5221f; }
+    .loading { text-align: center; padding: 40px; color: #666; }
+    .spinner { display: inline-block; width: 30px; height: 30px; border: 3px solid #e0e0e0; border-top-color: #1a73e8; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .admin-section { padding: 20px 24px; }
+    .admin-section h3 { margin-bottom: 16px; color: #333; font-size: 18px; }
+    .team-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .team-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border-left: 4px solid #1a73e8; }
+    .team-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .team-card h4 { color: #1a73e8; margin-bottom: 12px; font-size: 16px; }
+    .team-card .team-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .team-card .team-stat { text-align: center; }
+    .team-card .team-stat .num { font-size: 20px; font-weight: 700; }
+    .team-card .team-stat .lbl { font-size: 11px; color: #666; }
+    .team-card .team-stat.total .num { color: #1a73e8; }
+    .team-card .team-stat.s-l1 .num { color: #34a853; }
+    .team-card .team-stat.s-l2 .num { color: #fbbc04; }
+    .team-card .team-stat.s-l3 .num { color: #ea4335; }
+    .back-btn { padding: 8px 16px; background: #f0f2f5; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; font-size: 14px; margin-bottom: 16px; }
+    .back-btn:hover { border-color: #1a73e8; background: #e8f0fe; }
+    .procurement-section { padding: 20px 24px; }
+    .add-btn { padding: 12px 24px; background: #34a853; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
+    .add-btn:hover { background: #2d8e47; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal h3 { margin-bottom: 20px; color: #333; }
+    .modal .form-group { margin-bottom: 16px; }
+    .modal .form-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 14px; }
+    .modal .form-group input, .modal .form-group select, .modal .form-group textarea { width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+    .modal .form-group textarea { min-height: 80px; resize: vertical; }
+    .modal-btns { display: flex; gap: 12px; margin-top: 20px; }
+    .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-save { background: #1a73e8; color: white; }
+    .btn-save:hover { background: #1557b0; }
+    .btn-save:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-cancel { background: #f0f2f5; color: #333; border: 2px solid #e0e0e0 !important; }
+    .btn-cancel:hover { background: #e0e0e0; }
+    .btn-delete { background: #d93025; color: white; }
+    .btn-delete:hover { background: #b5281f; }
+    .priority-high { color: #d93025; font-weight: 600; }
+    .priority-medium { color: #ea8600; font-weight: 600; }
+    .priority-low { color: #34a853; font-weight: 600; }
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+    .status-pending { background: #fef7e0; color: #7c5e00; }
+    .status-approved { background: #e6f4ea; color: #137333; }
+    .status-delivered { background: #e8f0fe; color: #1a73e8; }
+    .edit-btn { padding: 6px 12px; background: #e8f0fe; color: #1a73e8; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+    .edit-btn:hover { background: #d2e3fc; }
+    .upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
+    .upload-area:hover { border-color: #1a73e8; background: #f8f9ff; }
+    .upload-area.has-file { border-color: #34a853; background: #e6f4ea; }
+    .upload-area input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .upload-icon { font-size: 28px; margin-bottom: 8px; }
+    .upload-text { color: #666; font-size: 13px; }
+    .file-name { color: #34a853; font-weight: 600; font-size: 13px; margin-top: 8px; }
+    .upload-preview { max-width: 100%; max-height: 120px; margin-top: 10px; border-radius: 8px; object-fit: contain; }
+    .upload-progress { display: none; margin-top: 10px; font-size: 13px; color: #1a73e8; font-weight: 600; }
+    .img-link { display: inline-block; padding: 4px 10px; background: #e8f0fe; color: #1a73e8; border-radius: 4px; font-size: 12px; text-decoration: none; font-weight: 600; cursor: pointer; }
+    .img-link:hover { background: #d2e3fc; }
+    @media (max-width: 600px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .team-cards { grid-template-columns: 1fr; }
+      .header h2 { font-size: 14px; }
+      td, th { padding: 8px 10px; font-size: 13px; }
+      .login-box { padding: 24px; }
+      .tabs { overflow-x: auto; }
+      .tab { padding: 12px 14px; font-size: 13px; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-container" id="loginPage">
+  <div class="login-box">
+    <h1>🛡️ Safety and Security Team</h1>
+    <div class="subtitle">Didar Hyderabad 2026</div>
+    <p>Select your team and enter password</p>
+    <div class="form-group">
+      <label>Select Team</label>
+      <select id="userId">
+        <option value="" disabled selected>-- Choose your team --</option>
+        <option value="admin">📊 Overall Lead (All Teams)</option>
+        <option value="external_security">External Security</option>
+        <option value="internal_security">Internal Security</option>
+        <option value="transport">Transport</option>
+        <option value="command_center">Command Center</option>
+        <option value="fire_safety">Fire, Safety, Pandol, and Signages</option>
+        <option value="hr_training">HR and Training</option>
+        <option value="uttara">Uttara</option>
+        <option value="detention">Detention</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter password">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="handleLogin()">Login</button>
+    <p class="error" id="errorMsg"></p>
+  </div>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div class="admin-dashboard" id="adminDashboard">
+  <div class="header">
+    <h2>🛡️ Safety and Security - Didar Hyderabad 2026</h2>
+    <button class="logout-btn" onclick="handleLogout()">⬅ Logout</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchAdminTab('volunteers', this)">👥 Volunteers</div>
+    <div class="tab" onclick="switchAdminTab('procurement', this)">📦 Procurement</div>
+  </div>
+  <div class="tab-content active" id="adminVolunteersTab">
+    <div class="stats">
+      <div class="stat-card"><div class="number" id="adminTotalCount">-</div><div class="label">Total Volunteers</div></div>
+      <div class="stat-card l1"><div class="number" id="adminL1Count">-</div><div class="label">Level 1</div></div>
+      <div class="stat-card l2"><div class="number" id="adminL2Count">-</div><div class="label">Level 2</div></div>
+      <div class="stat-card l3"><div class="number" id="adminL3Count">-</div><div class="label">Level 3</div></div>
+    </div>
+    <div class="admin-section" id="adminTeamCards">
+      <h3>📋 Team Breakdown (Click to view details)</h3>
+      <div class="team-cards" id="teamCardsContainer"></div>
+    </div>
+    <div class="admin-section" id="adminDetailView" style="display:none;">
+      <button class="back-btn" onclick="showAdminOverview()">⬅ Back to All Teams</button>
+      <h3 id="adminDetailTitle">Team Details</h3>
+      <div class="controls">
+        <input type="text" class="search-input" id="adminSearchInput" placeholder="🔍 Search..." oninput="filterAdminTable()">
+        <button class="filter-btn active" onclick="setAdminFilter('all', this)">All</button>
+        <button class="filter-btn" onclick="setAdminFilter('L1', this)">L1</button>
+        <button class="filter-btn" onclick="setAdminFilter('L2', this)">L2</button>
+        <button class="filter-btn" onclick="setAdminFilter('L3', this)">L3</button>
+      </div>
+      <div class="table-container">
+        <div class="loading" id="adminLoading"><div class="spinner"></div><p>Loading...</p></div>
+        <table id="adminTeamTable" style="display:none;">
+          <thead><tr><th>S.No</th><th>Name</th><th>Phone</th><th>Center</th><th>DOB</th><th>Level</th><th>Didar</th><th>Committment</th></tr></thead>
+          <tbody id="adminTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="tab-content" id="adminProcurementTab">
+    <div class="procurement-section">
+      <h3>📦 All Procurement Requests</h3>
+      <div class="table-container">
+        <div class="loading" id="adminProcLoading"><div class="spinner"></div><p>Loading...</p></div>
+        <table id="adminProcTable" style="display:none;">
+          <thead><tr><th>Team</th><th>Item</th><th>Category</th><th>Qty</th><th>Priority</th><th>Notes</th><th>Image</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="adminProcBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TEAM LEAD DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <div class="header">
+    <h2 id="teamTitle">Team Name</h2>
+    <button class="logout-btn" onclick="handleLogout()">⬅ Logout</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('volunteers', this)">👥 Volunteers</div>
+    <div class="tab" onclick="switchTab('procurement', this)">📦 Procurement</div>
+  </div>
+  <div class="tab-content active" id="volunteersTab">
+    <div class="stats">
+      <div class="stat-card"><div class="number" id="totalCount">-</div><div class="label">Total Members</div></div>
+      <div class="stat-card l1"><div class="number" id="l1Count">-</div><div class="label">Level 1</div></div>
+      <div class="stat-card l2"><div class="number" id="l2Count">-</div><div class="label">Level 2</div></div>
+      <div class="stat-card l3"><div class="number" id="l3Count">-</div><div class="label">Level 3</div></div>
+    </div>
+    <div class="controls">
+      <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search by name, phone, center..." oninput="filterTable()">
+      <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-btn" onclick="setFilter('L1', this)">L1</button>
+      <button class="filter-btn" onclick="setFilter('L2', this)">L2</button>
+      <button class="filter-btn" onclick="setFilter('L3', this)">L3</button>
+    </div>
+    <div class="table-container">
+      <div class="loading" id="loading"><div class="spinner"></div><p>Loading team data...</p></div>
+      <table id="teamTable" style="display:none;">
+        <thead><tr><th>S.No</th><th>Name</th><th>Phone</th><th>Center</th><th>DOB</th><th>Level</th><th>Didar</th><th>Committment</th></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="tab-content" id="procurementTab">
+    <div class="procurement-section">
+      <button class="add-btn" onclick="openAddModal()">+ Add New Requirement</button>
+      <div class="table-container">
+        <div class="loading" id="procLoading"><div class="spinner"></div><p>Loading...</p></div>
+        <table id="procTable" style="display:none;">
+          <thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Priority</th><th>Notes</th><th>Image</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="procBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT PROCUREMENT MODAL -->
+<div class="modal-overlay" id="procModal">
+  <div class="modal">
+    <h3 id="modalTitle">Add Procurement Item</h3>
+    <div class="form-group">
+      <label>Item Name *</label>
+      <input type="text" id="procItemName" placeholder="e.g., Walkie Talkie">
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="procCategory">
+        <option value="Communication">Communication</option>
+        <option value="Safety Equipment">Safety Equipment</option>
+        <option value="Signage">Signage</option>
+        <option value="Transport">Transport</option>
+        <option value="Medical">Medical</option>
+        <option value="Food & Water">Food & Water</option>
+        <option value="Stationery">Stationery</option>
+        <option value="Uniform">Uniform</option>
+        <option value="Electrical">Electrical</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Quantity *</label>
+      <input type="number" id="procQuantity" placeholder="e.g., 50" min="1">
+    </div>
+    <div class="form-group">
+      <label>Priority</label>
+      <select id="procPriority">
+        <option value="High">High</option>
+        <option value="Medium" selected>Medium</option>
+        <option value="Low">Low</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="procNotes" placeholder="Additional details..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>📷 Reference Image (optional)</label>
+      <div class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+        <div class="upload-icon">📷</div>
+        <div class="upload-text">Tap to upload photo or take picture</div>
+        <div class="file-name" id="fileName"></div>
+        <img class="upload-preview" id="uploadPreview" style="display:none;">
+      </div>
+      <div class="upload-progress" id="uploadProgress">⏳ Uploading image...</div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-delete" id="deleteBtn" onclick="deleteItem()" style="display:none;">Delete</button>
+      <button class="btn-save" id="saveBtn" onclick="saveItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE VIEWER -->
+<div class="modal-overlay" id="imageModal" onclick="closeImageModal()">
+  <div class="modal" style="text-align:center;" onclick="event.stopPropagation();">
+    <h3 id="imageModalTitle">Reference Image</h3>
+    <img id="imageModalImg" style="max-width:100%;max-height:60vh;border-radius:8px;margin-top:16px;">
+    <div class="modal-btns" style="margin-top:16px;">
+      <button class="btn-cancel" onclick="closeImageModal()">Close</button>
+      <a id="imageModalLink" href="#" target="_blank" style="flex:1;padding:12px;background:#1a73e8;color:white;border-radius:8px;text-align:center;text-decoration:none;font-weight:600;">Open in Drive</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// ⚠️ CHANGE THIS TO YOUR APPS SCRIPT WEB APP URL
+// =============================================
+var API_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID_HERE/exec';
+
+var allMembers = [];
+var adminMembers = [];
+var currentFilter = 'all';
+var adminFilter = 'all';
+var currentTeam = '';
+var isAdmin = false;
+var editingRowIndex = null;
+var selectedFileBase64 = null;
+var selectedFileName = '';
+var selectedFileMime = '';
+var existingImageUrl = '';
+var cachedProcurement = null;
+
+document.getElementById('password').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') handleLogin();
+});
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function() {});
+}
+
+// ============ API HELPERS ============
+function apiGet(params) {
+  var url = API_URL + '?' + Object.keys(params).map(function(k) {
+    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+  }).join('&');
+  return fetch(url).then(function(r) { return r.json(); });
+}
+
+function apiPost(data) {
+  return fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }).then(function(r) { return r.json(); }).catch(function() { return { success: true }; });
+}
+
+// ============ LOGIN ============
+function handleLogin() {
+  var userId = document.getElementById('userId').value;
+  var password = document.getElementById('password').value;
+  var btn = document.getElementById('loginBtn');
+  if (!userId) { showError('Please select a team'); return; }
+  if (!password) { showError('Please enter password'); return; }
+  btn.disabled = true;
+  btn.textContent = 'Logging in...';
+  document.getElementById('errorMsg').style.display = 'none';
+
+  apiGet({ action: 'login', userId: userId, password: password })
+    .then(function(result) {
+      if (result.success) {
+        document.getElementById('loginPage').style.display = 'none';
+        isAdmin = result.isAdmin;
+        currentTeam = result.team;
+        if (result.isAdmin) {
+          document.getElementById('adminDashboard').style.display = 'block';
+          loadAdminDashboard();
+        } else {
+          document.getElementById('dashboard').style.display = 'block';
+          document.getElementById('teamTitle').textContent = result.team;
+          loadTeamData(result.team);
+        }
+      } else {
+        showError('Invalid password');
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
+    })
+    .catch(function(err) {
+      showError('Connection error. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Login';
+    });
+}
+
+function showError(msg) {
+  var el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ============ TABS ============
+function switchTab(tab, el) {
+  var tabs = document.querySelectorAll('#dashboard .tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  el.classList.add('active');
+  document.getElementById('volunteersTab').classList.remove('active');
+  document.getElementById('procurementTab').classList.remove('active');
+  if (tab === 'volunteers') {
+    document.getElementById('volunteersTab').classList.add('active');
+  } else {
+    document.getElementById('procurementTab').classList.add('active');
+    if (cachedProcurement) {
+      document.getElementById('procLoading').style.display = 'none';
+      document.getElementById('procTable').style.display = 'table';
+      renderProcTable(cachedProcurement.items, 'procBody', false);
+    } else {
+      loadProcurement();
+    }
+  }
+}
+
+function switchAdminTab(tab, el) {
+  var tabs = document.querySelectorAll('#adminDashboard .tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  el.classList.add('active');
+  document.getElementById('adminVolunteersTab').classList.remove('active');
+  document.getElementById('adminProcurementTab').classList.remove('active');
+  if (tab === 'volunteers') {
+    document.getElementById('adminVolunteersTab').classList.add('active');
+  } else {
+    document.getElementById('adminProcurementTab').classList.add('active');
+    loadAdminProcurement();
+  }
+}
+
+// ============ ADMIN ============
+function loadAdminDashboard() {
+  apiGet({ action: 'getAllTeamsData' })
+    .then(function(result) {
+      document.getElementById('adminTotalCount').textContent = result.grandTotal.total;
+      document.getElementById('adminL1Count').textContent = result.grandTotal.l1;
+      document.getElementById('adminL2Count').textContent = result.grandTotal.l2;
+      document.getElementById('adminL3Count').textContent = result.grandTotal.l3;
+      var container = document.getElementById('teamCardsContainer');
+      var html = '';
+      for (var i = 0; i < result.teams.length; i++) {
+        var team = result.teams[i];
+        html += '<div class="team-card" onclick="adminViewTeam(\'' + team.teamName.replace(/'/g, "\\'") + '\')">';
+        html += '<h4>' + team.teamName + '</h4><div class="team-stats">';
+        html += '<div class="team-stat total"><div class="num">' + team.total + '</div><div class="lbl">Total</div></div>';
+        html += '<div class="team-stat s-l1"><div class="num">' + team.l1 + '</div><div class="lbl">L1</div></div>';
+        html += '<div class="team-stat s-l2"><div class="num">' + team.l2 + '</div><div class="lbl">L2</div></div>';
+        html += '<div class="team-stat s-l3"><div class="num">' + team.l3 + '</div><div class="lbl">L3</div></div>';
+        html += '</div></div>';
+      }
+      container.innerHTML = html;
+    });
+}
+
+function adminViewTeam(teamName) {
+  document.getElementById('adminTeamCards').style.display = 'none';
+  document.getElementById('adminDetailView').style.display = 'block';
+  document.getElementById('adminDetailTitle').textContent = teamName;
+  document.getElementById('adminLoading').style.display = 'block';
+  document.getElementById('adminTeamTable').style.display = 'none';
+  adminFilter = 'all';
+  apiGet({ action: 'getTeamData', team: teamName })
+    .then(function(result) {
+      document.getElementById('adminLoading').style.display = 'none';
+      document.getElementById('adminTeamTable').style.display = 'table';
+      if (result.error) return;
+      adminMembers = result.members;
+      renderAdminTable(adminMembers);
+    });
+}
+
+function showAdminOverview() {
+  document.getElementById('adminTeamCards').style.display = 'block';
+  document.getElementById('adminDetailView').style.display = 'none';
+}
+
+function renderAdminTable(members) {
+  var tbody = document.getElementById('adminTableBody');
+  var html = '';
+  for (var i = 0; i < members.length; i++) {
+    var m = members[i];
+    html += '<tr><td>' + (i+1) + '</td><td><strong>' + m.firstName + '</strong> ' + m.middleName + ' ' + m.lastName + '</td>';
+    html += '<td>' + (m.phone||'-') + '</td><td>' + (m.center||'-') + '</td><td>' + (m.dob||'-') + '</td>';
+    html += '<td><span class="level-badge level-' + m.level + '">' + (m.level||'-') + '</span></td>';
+    html += '<td>' + (m.didar||'-') + '</td><td>' + (m.committment||'-') + '</td></tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+function filterAdminTable() {
+  var search = document.getElementById('adminSearchInput').value.toLowerCase();
+  var filtered = [];
+  for (var i = 0; i < adminMembers.length; i++) {
+    var m = adminMembers[i];
+    var lvl = m.level.toUpperCase().trim();
+    if (adminFilter !== 'all' && lvl !== adminFilter && lvl !== adminFilter.replace('L','')) continue;
+    if (search) {
+      var full = (m.firstName + ' ' + m.middleName + ' ' + m.lastName).toLowerCase();
+      if (full.indexOf(search) === -1 && (m.phone||'').indexOf(search) === -1 && (m.center||'').toLowerCase().indexOf(search) === -1) continue;
+    }
+    filtered.push(m);
+  }
+  renderAdminTable(filtered);
+}
+
+function setAdminFilter(level, btn) {
+  adminFilter = level;
+  var buttons = document.querySelectorAll('#adminDetailView .filter-btn');
+  for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('active');
+  btn.classList.add('active');
+  filterAdminTable();
+}
+
+// ============ VOLUNTEERS ============
+function loadTeamData(teamName) {
+  apiGet({ action: 'getTeamData', team: teamName })
+    .then(function(result) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('teamTable').style.display = 'table';
+      if (result.error) {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('loading').innerHTML = '<p style="color:red;">' + result.error + '</p>';
+        document.getElementById('teamTable').style.display = 'none';
+        return;
+      }
+      allMembers = result.members;
+      document.getElementById('totalCount').textContent = result.stats.total;
+      document.getElementById('l1Count').textContent = result.stats.l1;
+      document.getElementById('l2Count').textContent = result.stats.l2;
+      document.getElementById('l3Count').textContent = result.stats.l3;
+      renderTable(allMembers);
+    });
+  // Pre-load procurement in background
+  apiGet({ action: 'getProcurement', team: teamName })
+    .then(function(result) { cachedProcurement = result; });
+}
+
+function renderTable(members) {
+  var tbody = document.getElementById('tableBody');
+  var html = '';
+  for (var i = 0; i < members.length; i++) {
+    var m = members[i];
+    html += '<tr><td>' + (i+1) + '</td><td><strong>' + m.firstName + '</strong> ' + m.middleName + ' ' + m.lastName + '</td>';
+    html += '<td>' + (m.phone||'-') + '</td><td>' + (m.center||'-') + '</td><td>' + (m.dob||'-') + '</td>';
+    html += '<td><span class="level-badge level-' + m.level + '">' + (m.level||'-') + '</span></td>';
+    html += '<td>' + (m.didar||'-') + '</td><td>' + (m.committment||'-') + '</td></tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+function filterTable() {
+  var search = document.getElementById('searchInput').value.toLowerCase();
+  var filtered = [];
+  for (var i = 0; i < allMembers.length; i++) {
+    var m = allMembers[i];
+    var lvl = m.level.toUpperCase().trim();
+    if (currentFilter !== 'all' && lvl !== currentFilter && lvl !== currentFilter.replace('L','')) continue;
+    if (search) {
+      var full = (m.firstName + ' ' + m.middleName + ' ' + m.lastName).toLowerCase();
+      if (full.indexOf(search) === -1 && (m.phone||'').indexOf(search) === -1 && (m.center||'').toLowerCase().indexOf(search) === -1) continue;
+    }
+    filtered.push(m);
+  }
+  renderTable(filtered);
+}
+
+function setFilter(level, btn) {
+  currentFilter = level;
+  var buttons = document.querySelectorAll('#dashboard .controls .filter-btn');
+  for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('active');
+  btn.classList.add('active');
+  filterTable();
+}
+
+// ============ PROCUREMENT ============
+function loadProcurement() {
+  document.getElementById('procLoading').style.display = 'block';
+  document.getElementById('procTable').style.display = 'none';
+  apiGet({ action: 'getProcurement', team: currentTeam })
+    .then(function(result) {
+      document.getElementById('procLoading').style.display = 'none';
+      document.getElementById('procTable').style.display = 'table';
+      cachedProcurement = result;
+      renderProcTable(result.items, 'procBody', false);
+    });
+}
+
+function loadAdminProcurement() {
+  document.getElementById('adminProcLoading').style.display = 'block';
+  document.getElementById('adminProcTable').style.display = 'none';
+  apiGet({ action: 'getProcurement', team: 'ALL' })
+    .then(function(result) {
+      document.getElementById('adminProcLoading').style.display = 'none';
+      document.getElementById('adminProcTable').style.display = 'table';
+      renderProcTable(result.items, 'adminProcBody', true);
+    });
+}
+
+function renderProcTable(items, tbodyId, showTeam) {
+  var tbody = document.getElementById(tbodyId);
+  var html = '';
+  if (items.length === 0) {
+    var cols = showTeam ? 9 : 8;
+    html = '<tr><td colspan="' + cols + '" style="text-align:center;color:#666;padding:30px;">No procurement items yet.</td></tr>';
+  } else {
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      var priorityClass = 'priority-' + item.priority.toLowerCase();
+      var statusClass = 'status-' + item.status.toLowerCase();
+      html += '<tr>';
+      if (showTeam) html += '<td><strong>' + item.team + '</strong></td>';
+      html += '<td>' + item.itemName + '</td>';
+      html += '<td>' + item.category + '</td>';
+      html += '<td><strong>' + item.quantity + '</strong></td>';
+      html += '<td><span class="' + priorityClass + '">' + item.priority + '</span></td>';
+      html += '<td>' + (item.notes || '-') + '</td>';
+      if (item.imageUrl && item.imageUrl !== '' && item.imageUrl !== 'undefined') {
+        html += '<td><a class="img-link" onclick="viewImage(\'' + item.imageUrl + '\',\'' + item.itemName.replace(/'/g,"\\'") + '\')">📷 View</a></td>';
+      } else {
+        html += '<td style="color:#ccc;">-</td>';
+      }
+      html += '<td><span class="status-badge ' + statusClass + '">' + item.status + '</span></td>';
+      html += '<td>';
+      if (showTeam) {
+        html += '<select onchange="updateStatus(' + item.rowIndex + ', this.value)" style="padding:4px;border-radius:4px;border:1px solid #ddd;font-size:12px;">';
+        html += '<option value="Pending"' + (item.status==='Pending'?' selected':'') + '>Pending</option>';
+        html += '<option value="Approved"' + (item.status==='Approved'?' selected':'') + '>Approved</option>';
+        html += '<option value="Delivered"' + (item.status==='Delivered'?' selected':'') + '>Delivered</option>';
+        html += '</select>';
+      } else {
+        html += '<button class="edit-btn" onclick="openEditModal(' + item.rowIndex + ',\'' + item.itemName.replace(/'/g,"\\'") + '\',\'' + item.category + '\',' + item.quantity + ',\'' + item.priority + '\',\'' + (item.notes||'').replace(/'/g,"\\'").replace(/\n/g,' ') + '\',\'' + (item.imageUrl||'') + '\')">✏️ Edit</button>';
+      }
+      html += '</td></tr>';
+    }
+  }
+  tbody.innerHTML = html;
+}
+
+function extractFileId(url) {
+  if (!url) return '';
+  var match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (match) return match[1];
+  match = url.match(/id=([a-zA-Z0-9_-]+)/);
+  if (match) return match[1];
+  return '';
+}
+
+function updateStatus(rowIndex, status) {
+  apiPost({ action: 'updateStatus', rowIndex: rowIndex, status: status })
+    .then(function() { loadAdminProcurement(); });
+}
+
+// ============ IMAGE ============
+function handleFileSelect(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Image must be less than 5MB');
+    event.target.value = '';
+    return;
+  }
+  selectedFileName = file.name;
+  selectedFileMime = file.type;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    selectedFileBase64 = e.target.result.split(',')[1];
+    document.getElementById('uploadArea').classList.add('has-file');
+    document.getElementById('fileName').textContent = '✅ ' + file.name;
+    document.getElementById('uploadPreview').src = e.target.result;
+    document.getElementById('uploadPreview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function viewImage(url, itemName) {
+  var fileId = extractFileId(url);
+  var imgSrc = fileId ? 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w800' : url;
+  document.getElementById('imageModalTitle').textContent = itemName;
+  document.getElementById('imageModalImg').src = imgSrc;
+  document.getElementById('imageModalLink').href = url;
+  document.getElementById('imageModal').classList.add('show');
+}
+
+function closeImageModal() {
+  document.getElementById('imageModal').classList.remove('show');
+}
+
+// ============ MODAL ============
+function openAddModal() {
+  editingRowIndex = null;
+  existingImageUrl = '';
+  selectedFileBase64 = null;
+  selectedFileName = '';
+  document.getElementById('modalTitle').textContent = 'Add Procurement Item';
+  document.getElementById('procItemName').value = '';
+  document.getElementById('procCategory').value = 'Communication';
+  document.getElementById('procQuantity').value = '';
+  document.getElementById('procPriority').value = 'Medium';
+  document.getElementById('procNotes').value = '';
+  document.getElementById('deleteBtn').style.display = 'none';
+  document.getElementById('uploadArea').classList.remove('has-file');
+  document.getElementById('fileName').textContent = '';
+  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById('uploadProgress').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('saveBtn').disabled = false;
+  document.getElementById('saveBtn').textContent = 'Save';
+  document.getElementById('procModal').classList.add('show');
+}
+
+function openEditModal(rowIndex, itemName, category, quantity, priority, notes, imageUrl) {
+  editingRowIndex = rowIndex;
+  existingImageUrl = imageUrl || '';
+  selectedFileBase64 = null;
+  selectedFileName = '';
+  document.getElementById('modalTitle').textContent = 'Edit Procurement Item';
+  document.getElementById('procItemName').value = itemName;
+  document.getElementById('procCategory').value = category;
+  document.getElementById('procQuantity').value = quantity;
+  document.getElementById('procPriority').value = priority;
+  document.getElementById('procNotes').value = notes;
+  document.getElementById('deleteBtn').style.display = 'block';
+  document.getElementById('uploadProgress').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('saveBtn').disabled = false;
+  document.getElementById('saveBtn').textContent = 'Save';
+  if (imageUrl && imageUrl !== '' && imageUrl !== 'undefined') {
+    document.getElementById('uploadArea').classList.add('has-file');
+    document.getElementById('fileName').textContent = '✅ Image attached (select new to replace)';
+    var fileId = extractFileId(imageUrl);
+    if (fileId) {
+      document.getElementById('uploadPreview').src = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w200';
+      document.getElementById('uploadPreview').style.display = 'block';
+    } else {
+      document.getElementById('uploadPreview').style.display = 'none';
+    }
+  } else {
+    document.getElementById('uploadArea').classList.remove('has-file');
+    document.getElementById('fileName').textContent = '';
+    document.getElementById('uploadPreview').style.display = 'none';
+  }
+  document.getElementById('procModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('procModal').classList.remove('show');
+}
+
+function saveItem() {
+  var itemName = document.getElementById('procItemName').value.trim();
+  var category = document.getElementById('procCategory').value;
+  var quantity = parseInt(document.getElementById('procQuantity').value);
+  var priority = document.getElementById('procPriority').value;
+  var notes = document.getElementById('procNotes').value.trim();
+  if (!itemName) { alert('Please enter item name'); return; }
+  if (!quantity || quantity < 1) { alert('Please enter valid quantity'); return; }
+  var saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
+
+  if (selectedFileBase64) {
+    document.getElementById('uploadProgress').style.display = 'block';
+    var timestamp = new Date().getTime();
+    var cleanName = currentTeam.replace(/[^a-zA-Z0-9]/g, '_') + '_' + timestamp + '_' + selectedFileName;
+    apiPost({ action: 'uploadImage', base64Data: selectedFileBase64, fileName: cleanName, mimeType: selectedFileMime })
+      .then(function(uploadResult) {
+        document.getElementById('uploadProgress').style.display = 'none';
+        var imgUrl = (uploadResult && uploadResult.url) ? uploadResult.url : '';
+        saveToSheet(itemName, category, quantity, priority, notes, imgUrl);
+      })
+      .catch(function() {
+        document.getElementById('uploadProgress').style.display = 'none';
+        saveToSheet(itemName, category, quantity, priority, notes, '');
+      });
+  } else {
+    saveToSheet(itemName, category, quantity, priority, notes, existingImageUrl || '');
+  }
+}
+
+function saveToSheet(itemName, category, quantity, priority, notes, imageUrl) {
+  var data;
+  if (editingRowIndex) {
+    data = { action: 'updateProcurement', rowIndex: editingRowIndex, itemName: itemName, category: category, quantity: quantity, priority: priority, notes: notes, imageUrl: imageUrl };
+  } else {
+    data = { action: 'addProcurement', team: currentTeam, itemName: itemName, category: category, quantity: quantity, priority: priority, notes: notes, imageUrl: imageUrl };
+  }
+  apiPost(data)
+    .then(function() {
+      closeModal();
+      cachedProcurement = null;
+      loadProcurement();
+    })
+    .catch(function() {
+      alert('Save failed. Please try again.');
+      document.getElementById('saveBtn').disabled = false;
+      document.getElementById('saveBtn').textContent = 'Save';
+    });
+}
+
+function deleteItem() {
+  if (!confirm('Are you sure you want to delete this item?')) return;
+  closeModal();
+  apiPost({ action: 'deleteProcurement', rowIndex: editingRowIndex })
+    .then(function() {
+      cachedProcurement = null;
+      loadProcurement();
+    });
+}
+
+// ============ LOGOUT ============
+function handleLogout() {
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('adminDashboard').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('userId').value = '';
+  document.getElementById('password').value = '';
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginBtn').textContent = 'Login';
+  document.getElementById('teamTable').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('loading').innerHTML = '<div class="spinner"></div><p>Loading team data...</p>';
+  document.getElementById('errorMsg').style.display = 'none';
+  allMembers = [];
+  adminMembers = [];
+  cachedProcurement = null;
+  currentFilter = 'all';
+  adminFilter = 'all';
+}
+</script>
+</body>
+</html>
+
