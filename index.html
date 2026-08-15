@@ -359,19 +359,28 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(function() {});
 }
 
-// ============ API HELPERS ============
+// ============ API HELPERS (CORS FIX) ============
+
 function apiGet(params) {
   var url = API_URL + '?' + Object.keys(params).map(function(k) {
     return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
   }).join('&');
-  return fetch(url).then(function(r) { return r.json(); });
+  
+  return fetch(url, {
+    method: 'GET',
+    redirect: 'follow'
+  }).then(function(r) { return r.json(); });
 }
 
 function apiPost(data) {
   return fetch(API_URL, {
     method: 'POST',
+    redirect: 'follow',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
     body: JSON.stringify(data)
-  }).then(function(r) { return r.json(); }).catch(function() { return { success: true }; });
+  }).then(function(r) { return r.json(); });
 }
 
 // ============ LOGIN ============
