@@ -334,7 +334,7 @@
 
 <script>
 // =============================================
-// YOUR APPS SCRIPT WEB APP URL
+// YOUR APPS SCRIPT WEB APP URL - UPDATE AFTER EACH NEW DEPLOYMENT
 // =============================================
 var API_URL = 'https://script.google.com/macros/s/AKfycbzWNkYic1fs8YepBGXvqEK6wLkrt4a5orX1pe13dZFry6CH9kQJCXLTl3ZHHW0alnC5/exec';
 
@@ -350,6 +350,7 @@ var selectedFileName = '';
 var selectedFileMime = '';
 var existingImageUrl = '';
 var cachedProcurement = null;
+var jsonpCounter = 0;
 
 document.getElementById('password').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') handleLogin();
@@ -359,43 +360,77 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(function() {});
 }
 
-// ============ API HELPERS (GOOGLE REDIRECT FIX) ============
+// ============ API HELPERS (JSONP - BYPASSES CORS) ============
 
 function apiGet(params) {
-  var url = API_URL + '?' + Object.keys(params).map(function(k) {
-    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-  }).join('&');
   return new Promise(function(resolve, reject) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          try { resolve(JSON.parse(xhr.responseText)); }
-          catch (e) { reject(new Error('Parse error')); }
-        } else { reject(new Error('Status: ' + xhr.status)); }
-      }
+    jsonpCounter++;
+    var cbName = '__jsonp_cb_' + jsonpCounter + '_' + Date.now();
+
+    var url = API_URL + '?' + Object.keys(params).map(function(k) {
+      return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }).join('&') + '&callback=' + cbName;
+
+    var timeout = setTimeout(function() {
+      cleanup();
+      reject(new Error('Request timeout'));
+    }, 30000);
+
+    window[cbName] = function(data) {
+      cleanup();
+      resolve(data);
     };
-    xhr.onerror = function() { reject(new Error('Network error')); };
-    xhr.send();
+
+    function cleanup() {
+      clearTimeout(timeout);
+      try { delete window[cbName]; } catch(ex) { window[cbName] = undefined; }
+      var el = document.getElementById(cbName);
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+    }
+
+    var script = document.createElement('script');
+    script.id = cbName;
+    script.src = url;
+    script.onerror = function() {
+      cleanup();
+      reject(new Error('Network error'));
+    };
+    document.body.appendChild(script);
   });
 }
 
 function apiPost(data) {
   return new Promise(function(resolve, reject) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', API_URL, true);
-    xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          try { resolve(JSON.parse(xhr.responseText)); }
-          catch (e) { resolve({ success: true }); }
-        } else { resolve({ success: true }); }
-      }
+    jsonpCounter++;
+    var cbName = '__jsonp_cb_' + jsonpCounter + '_' + Date.now();
+
+    var url = API_URL + '?postData=' + encodeURIComponent(JSON.stringify(data)) + '&callback=' + cbName;
+
+    var timeout = setTimeout(function() {
+      cleanup();
+      resolve({ success: true });
+    }, 30000);
+
+    window[cbName] = function(responseData) {
+      cleanup();
+      resolve(responseData);
     };
-    xhr.onerror = function() { resolve({ success: true }); };
-    xhr.send(JSON.stringify(data));
+
+    function cleanup() {
+      clearTimeout(timeout);
+      try { delete window[cbName]; } catch(ex) { window[cbName] = undefined; }
+      var el = document.getElementById(cbName);
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+    }
+
+    var script = document.createElement('script');
+    script.id = cbName;
+    script.src = url;
+    script.onerror = function() {
+      cleanup();
+      resolve({ success: true });
+    };
+    document.body.appendChild(script);
   });
 }
 
@@ -731,159 +766,4 @@ function viewImage(url, itemName) {
   var fileId = extractFileId(url);
   var imgSrc = fileId ? 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w800' : url;
   document.getElementById('imageModalTitle').textContent = itemName;
-  document.getElementById('imageModalImg').src = imgSrc;
-  document.getElementById('imageModalLink').href = url;
-  document.getElementById('imageModal').classList.add('show');
-}
-
-function closeImageModal() {
-  document.getElementById('imageModal').classList.remove('show');
-}
-
-// ============ MODAL ============
-
-function openAddModal() {
-  editingRowIndex = null;
-  existingImageUrl = '';
-  selectedFileBase64 = null;
-  selectedFileName = '';
-  document.getElementById('modalTitle').textContent = 'Add Procurement Item';
-  document.getElementById('procItemName').value = '';
-  document.getElementById('procCategory').value = 'Communication';
-  document.getElementById('procQuantity').value = '';
-  document.getElementById('procPriority').value = 'Medium';
-  document.getElementById('procNotes').value = '';
-  document.getElementById('deleteBtn').style.display = 'none';
-  document.getElementById('uploadArea').classList.remove('has-file');
-  document.getElementById('fileName').textContent = '';
-  document.getElementById('uploadPreview').style.display = 'none';
-  document.getElementById('uploadProgress').style.display = 'none';
-  document.getElementById('fileInput').value = '';
-  document.getElementById('saveBtn').disabled = false;
-  document.getElementById('saveBtn').textContent = 'Save';
-  document.getElementById('procModal').classList.add('show');
-}
-
-function openEditModal(rowIndex, itemName, category, quantity, priority, notes, imageUrl) {
-  editingRowIndex = rowIndex;
-  existingImageUrl = imageUrl || '';
-  selectedFileBase64 = null;
-  selectedFileName = '';
-  document.getElementById('modalTitle').textContent = 'Edit Procurement Item';
-  document.getElementById('procItemName').value = itemName;
-  document.getElementById('procCategory').value = category;
-  document.getElementById('procQuantity').value = quantity;
-  document.getElementById('procPriority').value = priority;
-  document.getElementById('procNotes').value = notes;
-  document.getElementById('deleteBtn').style.display = 'block';
-  document.getElementById('uploadProgress').style.display = 'none';
-  document.getElementById('fileInput').value = '';
-  document.getElementById('saveBtn').disabled = false;
-  document.getElementById('saveBtn').textContent = 'Save';
-  if (imageUrl && imageUrl !== '' && imageUrl !== 'undefined') {
-    document.getElementById('uploadArea').classList.add('has-file');
-    document.getElementById('fileName').textContent = '✅ Image attached (select new to replace)';
-    var fileId = extractFileId(imageUrl);
-    if (fileId) {
-      document.getElementById('uploadPreview').src = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w200';
-      document.getElementById('uploadPreview').style.display = 'block';
-    } else {
-      document.getElementById('uploadPreview').style.display = 'none';
-    }
-  } else {
-    document.getElementById('uploadArea').classList.remove('has-file');
-    document.getElementById('fileName').textContent = '';
-    document.getElementById('uploadPreview').style.display = 'none';
-  }
-  document.getElementById('procModal').classList.add('show');
-}
-
-function closeModal() {
-  document.getElementById('procModal').classList.remove('show');
-}
-
-function saveItem() {
-  var itemName = document.getElementById('procItemName').value.trim();
-  var category = document.getElementById('procCategory').value;
-  var quantity = parseInt(document.getElementById('procQuantity').value);
-  var priority = document.getElementById('procPriority').value;
-  var notes = document.getElementById('procNotes').value.trim();
-  if (!itemName) { alert('Please enter item name'); return; }
-  if (!quantity || quantity < 1) { alert('Please enter valid quantity'); return; }
-  var saveBtn = document.getElementById('saveBtn');
-  saveBtn.disabled = true;
-  saveBtn.textContent = 'Saving...';
-
-  if (selectedFileBase64) {
-    document.getElementById('uploadProgress').style.display = 'block';
-    var timestamp = new Date().getTime();
-    var cleanName = currentTeam.replace(/[^a-zA-Z0-9]/g, '_') + '_' + timestamp + '_' + selectedFileName;
-    apiPost({ action: 'uploadImage', base64Data: selectedFileBase64, fileName: cleanName, mimeType: selectedFileMime })
-      .then(function(uploadResult) {
-        document.getElementById('uploadProgress').style.display = 'none';
-        var imgUrl = (uploadResult && uploadResult.url) ? uploadResult.url : '';
-        saveToSheet(itemName, category, quantity, priority, notes, imgUrl);
-      })
-      .catch(function() {
-        document.getElementById('uploadProgress').style.display = 'none';
-        saveToSheet(itemName, category, quantity, priority, notes, '');
-      });
-  } else {
-    saveToSheet(itemName, category, quantity, priority, notes, existingImageUrl || '');
-  }
-}
-
-function saveToSheet(itemName, category, quantity, priority, notes, imageUrl) {
-  var data;
-  if (editingRowIndex) {
-    data = { action: 'updateProcurement', rowIndex: editingRowIndex, itemName: itemName, category: category, quantity: quantity, priority: priority, notes: notes, imageUrl: imageUrl };
-  } else {
-    data = { action: 'addProcurement', team: currentTeam, itemName: itemName, category: category, quantity: quantity, priority: priority, notes: notes, imageUrl: imageUrl };
-  }
-  apiPost(data)
-    .then(function() {
-      closeModal();
-      cachedProcurement = null;
-      loadProcurement();
-    })
-    .catch(function() {
-      alert('Save failed. Please try again.');
-      document.getElementById('saveBtn').disabled = false;
-      document.getElementById('saveBtn').textContent = 'Save';
-    });
-}
-
-function deleteItem() {
-  if (!confirm('Are you sure you want to delete this item?')) return;
-  closeModal();
-  apiPost({ action: 'deleteProcurement', rowIndex: editingRowIndex })
-    .then(function() {
-      cachedProcurement = null;
-      loadProcurement();
-    });
-}
-
-// ============ LOGOUT ============
-
-function handleLogout() {
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('adminDashboard').style.display = 'none';
-  document.getElementById('loginPage').style.display = 'flex';
-  document.getElementById('userId').value = '';
-  document.getElementById('password').value = '';
-  document.getElementById('loginBtn').disabled = false;
-  document.getElementById('loginBtn').textContent = 'Login';
-  document.getElementById('teamTable').style.display = 'none';
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('loading').innerHTML = '<div class="spinner"></div><p>Loading team data...</p>';
-  document.getElementById('errorMsg').style.display = 'none';
-  allMembers = [];
-  adminMembers = [];
-  cachedProcurement = null;
-  currentFilter = 'all';
-  adminFilter = 'all';
-}
-</script>
-</body>
-</html>
-
+  document.getElementById
